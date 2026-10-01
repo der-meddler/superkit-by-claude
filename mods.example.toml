@@ -1,0 +1,15 @@
+# superkit mods configuration (copy to mods.toml)
+[[fstab]]
+files = ["vendor/etc/fstab.mt6768", "vendor/etc/fstab.mt6769t"]
+mount_points = ["/system", "/system_ext", "/vendor", "/product", "/odm"]
+remove_flags = ["avb", "avb=*", "avb_keys=*"]
+
+[[fstab]]
+files = ["vendor/etc/fstab.mt6768", "vendor/etc/fstab.mt6769t"]
+mount_points = ["/data"]
+remove_flags = ["fileencryption=*", "keydirectory=*", "metadata_encryption=*"]
+remove_mount_options = ["inlinecrypt"]
+
+[[props]]
+file = "system/system/build.prop"
+set = { "ro.adb.secure" = "0" }

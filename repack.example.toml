@@ -1,0 +1,9 @@
+# superkit repack configuration (copy to repack.toml)
+[defaults]
+ro = false              # rebuild without the f2fs `ro` feature and without the LP readonly attribute
+slack_percent = 10      # growth headroom for rw images
+slack_min = "32M"
+fixed_timestamp = true  # sload -T <stock root mtime>
+
+[partition.odm]
+ro = true               # tiny partition, keep it read-only to save space
