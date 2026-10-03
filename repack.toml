@@ -1,0 +1,11 @@
+# superkit repack configuration for SM-A137F A137FXXSCEZB1
+# With the debloat in mods.toml (~1.3 GiB freed) every partition fits as read-write.
+# If the capacity table in `superkit repack` says otherwise, add e.g.
+#   [partition.product]
+#   ro = true
+[defaults]
+ro = false              # no f2fs `ro` feature, no LP readonly attribute
+slack_percent = 3       # headroom on top of the estimated rw image size
+slack_min = "8M"
+fixed_timestamp = true
+keep_stock_size = true  # rw images keep the stock size; false = shrink to content + overprovision (frees super space)  # sload -T <stock timestamp>, reproducible images

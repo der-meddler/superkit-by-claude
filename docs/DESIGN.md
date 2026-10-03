@@ -179,6 +179,26 @@ stream file data to disk in block runs.
   No `--virtual-ab` / `--auto-slot-suffixing` unless header flags say so. Verify the
   rebuilt metadata by re-parsing it and comparing with super.json (only sizes/attributes
   may differ).
+* xattrs beyond the SELinux label: `sload_f2fs` never writes `security.capability` and
+  cannot write Samsung's `user.pa` process-authenticator certificates (6 files in vendor,
+  3 in system, ~400 B each; 2 files in system carry caps 0xc0). `build.py` therefore
+  (1) gives files whose final xattr set does not fit the 200-byte inline area a padded
+  SELinux label so sload allocates an xattr node, (2) after sload rewrites the xattr
+  storage of those inodes in place with `xattrw.py` (real label, capability v2, user.*),
+  without allocating anything, and (3) re-reads the image to prove every entry matches
+  the manifest before `fsck.f2fs --dry-run`.
+* Samsung download mode checks a firmware revision stored in the first 4 KiB of super
+  (Samsung's SignerVer02 record: RSA signature, build string `A137FXXSCEZB1` whose letter
+  `C` encodes revision 12, end sector at 0x400). `lpmake` zero-fills that block, and the
+  bootloader then refuses the image before writing ("SW REV CHECK FAIL |super| Fused 12 <
+  Binary 0"). `pack-odin --stock-super` copies the stock record into the rebuilt super and
+  updates the end-sector field; the signature cannot be valid but an OEM-unlocked
+  bootloader only enforces the revision (verified: the flag-patched vbmeta with its
+  record flashes, the record-less super does not, 2026-10-03).
+* The download-mode sparse parser of this bootloader does not support FILL chunks (it
+  stalls, 66 % with stock content re-encoded by img2simg), so `pack-odin` writes the
+  sparse image itself with RAW and DONT_CARE chunks only (`superkit/sparse.py`), which is
+  also how Samsung's own `super.img` is laid out (121 RAW + 36 DONT_CARE, no FILL).
 * Never write into `stock/`.
 
 ## 7. Verification strategy (tests must exist for all of these)
@@ -198,3 +218,23 @@ stream file data to disk in block runs.
 4. Round trip: unpack stock vendor → repack unmodified (non-ro) → unpack again → manifests
    identical (modes, owners, labels, caps, targets, sha256), fsck.f2fs clean.
 5. Mods: fstab/prop editors tested on copies of the stock files; idempotent.
+
+## 8. Flashing (verified on the device, 2026-10-03)
+
+* **Download mode refuses any modified super**, with or without the copied signature record
+  ("SW REV CHECK FAIL |super| Fused 12 < Binary 0"): the revision check is bound to Samsung's
+  RSA signature over the image. Only the stock sparse `super.img` passes. Download mode is
+  still the way to clear the "failed download" state after a rejected attempt (flash the stock
+  sparse super with Heimdall: `heimdall flash --super stock/AP/super.img --no-reboot`).
+  Heimdall must be given the *sparse* file: a raw stream is rejected immediately.
+* **The rebuilt super is written from TWRP**: Format Data, `adb push out/v1/super.img
+  /data/super.img`, `dd if=/data/super.img of=/dev/block/by-name/super bs=4M conv=fsync`,
+  compare sha256 of file and partition (`count=1530` 4 MiB blocks), remove the copy, then
+  `adb sideload` the AnyKernel3 zip (patched first-stage fstab), reboot.
+* vbmeta (flags 3, stock record kept) flashes fine through download mode.
+* Result on A137FXXSCEZB1: all five partitions mounted f2fs without dm-verity, LP attributes
+  none, `ro.crypto.state=unsupported` (no encryption), `mount -o remount,rw /vendor` works,
+  run-as keeps its capability, Samsung `user.pa` xattrs preserved, debloat applied.
+* Free space after the first build: / 556 MiB, product 582 MiB, vendor 22 MiB, system_ext
+  24 MiB, odm 8 MiB. Raise `slack_percent` per partition in repack.toml before adding files
+  to vendor or system_ext.

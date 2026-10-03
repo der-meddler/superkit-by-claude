@@ -1,0 +1,165 @@
+# superkit mods for SM-A137F A137FXXSCEZB1 (see docs/DESIGN.md §4 and superkit/mods/__init__.py)
+# Paths are <partition>/<path inside that partition's root>; for system the root holds system/,
+# so system files are system/system/...  Deletes are optional = true so re-applying is a no-op.
+
+# ---------------------------------------------------------------- fstab (second-stage copies)
+[[fstab]]
+files = ["vendor/etc/fstab.mt6768", "vendor/etc/fstab.mt6769t"]
+mount_points = ["/system", "/system_ext", "/vendor", "/product", "/odm"]
+remove_flags = ["avb", "avb=*", "avb_keys=*"]
+
+[[fstab]]
+files = ["vendor/etc/fstab.mt6768", "vendor/etc/fstab.mt6769t"]
+mount_points = ["/data"]
+remove_flags = ["fileencryption=*", "keydirectory=*", "metadata_encryption=*"]
+remove_mount_options = ["inlinecrypt"]
+
+# ---------------------------------------------------------------- props (examples, disabled)
+# [[props]]
+# file = "system/system/build.prop"
+# set = { "ro.adb.secure" = "0" }
+#
+# [[props]]
+# file = "vendor/build.prop"
+# set = { "ro.vendor.example" = "1" }
+
+# ---------------------------------------------------------------- debloat: product (Google)
+# kept on purpose: GmsCore, Phonesky, TrichromeLibrary (Chrome/WebView), Chrome,
+# AndroidSystemIntelligence, PrivateComputeServices, Messages (Google Messages is the SMS app)
+[[files]]
+action = "delete"
+path = "product/priv-app/Velvet"          # Google app / Assistant, 247 MiB
+optional = true
+
+[[files]]
+action = "delete"
+path = "product/app/Gmail2"               # 150 MiB
+optional = true
+
+[[files]]
+action = "delete"
+path = "product/app/Maps"                 # 140 MiB
+optional = true
+
+[[files]]
+action = "delete"
+path = "product/app/YouTube"              # 115 MiB
+optional = true
+
+# [[files]]
+# action = "delete"
+# path = "product/app/SpeechServicesByGoogle"   # 54 MiB; voice typing / Live Caption need it
+# optional = true
+
+# ---------------------------------------------------------------- debloat: system (Samsung)
+[[files]]
+action = "delete"
+path = "system/system/priv-app/OneDrive_Samsung_v3"   # 103 MiB
+optional = true
+
+[[files]]
+action = "delete"
+path = "system/system/priv-app/SamsungMessages"       # 48 MiB, Google Messages stays
+optional = true
+
+[[files]]
+action = "delete"
+path = "system/system/priv-app/DualOutFocusViewer_S"  # 63 MiB
+optional = true
+
+[[files]]
+action = "delete"
+path = "system/system/priv-app/DressRoom"             # 46 MiB, AR Emoji stickers
+optional = true
+
+[[files]]
+action = "delete"
+path = "system/system/priv-app/GameHome"              # 28 MiB, Game Launcher
+optional = true
+
+[[files]]
+action = "delete"
+path = "system/system/app/SmartReminder"              # 28 MiB
+optional = true
+
+[[files]]
+action = "delete"
+path = "system/system/app/LiveTranscribe"             # 24 MiB
+optional = true
+
+[[files]]
+action = "delete"
+path = "system/system/priv-app/ShareLive"             # 23 MiB
+optional = true
+
+[[files]]
+action = "delete"
+path = "system/system/priv-app/ThemeStore"            # 20 MiB
+optional = true
+
+# Samsung TTS voice packs: en_US and de_DE are kept, the rest goes (~290 MiB)
+[[files]]
+action = "delete"
+path = "system/system/app/SamsungTTSVoice_it_IT_f00"
+optional = true
+
+[[files]]
+action = "delete"
+path = "system/system/app/SamsungTTSVoice_vi_VN_f00"
+optional = true
+
+[[files]]
+action = "delete"
+path = "system/system/app/SamsungTTSVoice_pl_PL_f00"
+optional = true
+
+[[files]]
+action = "delete"
+path = "system/system/app/SamsungTTSVoice_hi_IN_f00"
+optional = true
+
+[[files]]
+action = "delete"
+path = "system/system/app/SamsungTTSVoice_th_TH_f00"
+optional = true
+
+[[files]]
+action = "delete"
+path = "system/system/app/SamsungTTSVoice_fr_FR_f00"
+optional = true
+
+[[files]]
+action = "delete"
+path = "system/system/app/SamsungTTSVoice_en_GB_f00"
+optional = true
+
+[[files]]
+action = "delete"
+path = "system/system/app/SamsungTTSVoice_es_ES_f00"
+optional = true
+
+[[files]]
+action = "delete"
+path = "system/system/app/SamsungTTSVoice_es_US_f00"
+optional = true
+
+[[files]]
+action = "delete"
+path = "system/system/app/SamsungTTSVoice_ru_RU_f00"
+optional = true
+
+# ---------------------------------------------------------------- optional extras (disabled)
+# [[files]]
+# action = "delete"
+# path = "system/system/priv-app/Routines"        # 52 MiB; Settings > Modes and Routines will crash
+# optional = true
+#
+# [[files]]
+# action = "delete"
+# path = "system/system/priv-app/GalaxyApps_OPEN" # 74 MiB; Galaxy Store, updates Samsung apps
+# optional = true
+#
+# [[files]]
+# action = "delete"
+# path = "system/system/priv-app/TalkbackSE"      # 60 MiB; accessibility screen reader
+# optional = true

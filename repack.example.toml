@@ -1,9 +1,17 @@
-# superkit repack configuration (copy to repack.toml)
+# superkit repack configuration (copy to repack.toml; keys: ro, slack_percent, slack_min,
+# fixed_timestamp, max_attempts, grow_percent)
 [defaults]
 ro = false              # rebuild without the f2fs `ro` feature and without the LP readonly attribute
-slack_percent = 10      # growth headroom for rw images
-slack_min = "32M"
-fixed_timestamp = true  # sload -T <stock root mtime>
+slack_percent = 3       # headroom on top of the estimated rw image size
+slack_min = "8M"
+fixed_timestamp = true
+keep_stock_size = true  # rw images keep the stock size; false = shrink to content + overprovision (frees super space)  # sload -T <stock timestamp>; false = per-file mtimes from the unpacked tree
 
+# The super partition has ~510 MiB of headroom once the AVB hashtrees are gone. Making every
+# partition rw costs ~550 MiB of overprovisioning, so keep the ones you do not edit read-only.
 [partition.odm]
-ro = true               # tiny partition, keep it read-only to save space
+ro = true
+[partition.product]
+ro = true
+[partition.system_ext]
+ro = true
