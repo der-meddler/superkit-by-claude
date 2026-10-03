@@ -7,5 +7,11 @@
 ro = false              # no f2fs `ro` feature, no LP readonly attribute
 slack_percent = 3       # headroom on top of the estimated rw image size
 slack_min = "8M"
-fixed_timestamp = true
-keep_stock_size = true  # rw images keep the stock size; false = shrink to content + overprovision (frees super space)  # sload -T <stock timestamp>, reproducible images
+fixed_timestamp = true  # sload -T <stock timestamp>, reproducible images
+keep_stock_size = true  # rw images keep the stock size; false = shrink to content + overprovision (frees super space)
+
+# vendor is the partition most likely to receive extra files (modules, firmware, hals):
+# give it real headroom. 3 % left only 22 MiB free on the first build.
+[partition.vendor]
+slack_percent = 30
+slack_min = "64M"
