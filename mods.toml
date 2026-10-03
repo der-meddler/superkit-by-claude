@@ -14,14 +14,12 @@ mount_points = ["/data"]
 remove_flags = ["fileencryption=*", "keydirectory=*", "metadata_encryption=*"]
 remove_mount_options = ["inlinecrypt"]
 
-# ---------------------------------------------------------------- props (examples, disabled)
-# [[props]]
-# file = "system/system/build.prop"
-# set = { "ro.adb.secure" = "0" }
-#
-# [[props]]
-# file = "vendor/build.prop"
-# set = { "ro.vendor.example" = "1" }
+# ---------------------------------------------------------------- props
+# adb as root without prompts: ro.debuggable=1 allows `adb root`, ro.secure=0 starts adbd as
+# root right away, ro.adb.secure=0 drops the per-PC RSA authorization prompt.
+[[props]]
+file = "system/system/build.prop"
+set = { "ro.secure" = "0", "ro.debuggable" = "1", "ro.adb.secure" = "0" }
 
 # ---------------------------------------------------------------- debloat: product (Google)
 # kept on purpose: GmsCore, Phonesky, TrichromeLibrary (Chrome/WebView), Chrome,

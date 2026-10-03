@@ -327,6 +327,22 @@ def cmd_pack_odin(args) -> int:
     return 0
 
 
+
+# --------------------------------------------------------------------------- pack-twrp
+
+def cmd_pack_twrp(args) -> int:
+    from . import twrp
+    try:
+        res = twrp.pack_twrp(args.super, args.outdir, vbmeta=args.vbmeta, name=args.name, level=args.level,
+                             progress=log, keep_gz=args.keep_gz)
+    except (twrp.TwrpError, OSError) as ex:
+        raise SystemExit("pack-twrp failed: %s" % ex)
+    for k, v in res.items():
+        print("%-12s %s" % (k, v))
+    print("flash: adb sideload %s   (or copy it to the phone and install it from TWRP)" % res["zip"])
+    return 0
+
+
 # --------------------------------------------------------------------------- main
 
 def main(argv=None) -> int:
@@ -374,6 +390,15 @@ def main(argv=None) -> int:
     s.add_argument("--name", help="tag for the tar file name")
     s.add_argument("--keep-sparse", action="store_true")
     s.set_defaults(fn=cmd_pack_odin)
+
+    s = sub.add_parser("pack-twrp", help="TWRP-flashable zip that writes the rebuilt super (and optionally vbmeta)")
+    s.add_argument("super", help="raw super.img from repack")
+    s.add_argument("outdir")
+    s.add_argument("--vbmeta", help="vbmeta.img to include (e.g. the flags-3 copy from pack-odin)")
+    s.add_argument("--name", help="tag for the zip file name")
+    s.add_argument("--level", type=int, default=6, help="gzip level (default 6)")
+    s.add_argument("--keep-gz", action="store_true")
+    s.set_defaults(fn=cmd_pack_twrp)
 
     args = ap.parse_args(argv)
     return args.fn(args)

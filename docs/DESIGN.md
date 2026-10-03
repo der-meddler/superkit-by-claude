@@ -227,7 +227,11 @@ stream file data to disk in block runs.
   still the way to clear the "failed download" state after a rejected attempt (flash the stock
   sparse super with Heimdall: `heimdall flash --super stock/AP/super.img --no-reboot`).
   Heimdall must be given the *sparse* file: a raw stream is rejected immediately.
-* **The rebuilt super is written from TWRP**: Format Data, `adb push out/v1/super.img
+* **One-step alternative**: `superkit pack-twrp out/v1/super.img out/v1/twrp --vbmeta out/v1/odin/vbmeta.img`
+  builds a TWRP-flashable zip (gzip-compressed raw super streamed into the partition with
+  `unzip -p | gzip -dc | dd`, size check against the block device, sha256 read-back
+  verification, optional vbmeta). `adb sideload` it or install it from storage.
+* **The manual way (first boot used this)**: Format Data, `adb push out/v1/super.img
   /data/super.img`, `dd if=/data/super.img of=/dev/block/by-name/super bs=4M conv=fsync`,
   compare sha256 of file and partition (`count=1530` 4 MiB blocks), remove the copy, then
   `adb sideload` the AnyKernel3 zip (patched first-stage fstab), reboot.
